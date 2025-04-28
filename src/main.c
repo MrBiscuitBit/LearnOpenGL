@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -46,11 +47,12 @@ int main(int argc, char **argv){
     const char *vertex_shader_source = 
         "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
-        "out vec4 vertex_color;\n"
+        "layout (location = 1) in vec3 aColor;\n"
+        "out vec3 our_color;\n"
         "void main()\n"
         "{\n"
         "   gl_Position = vec4(aPos, 1.0f);\n"
-        "   vertex_color = vec4(0.5f, 0.0f, 0.0f, 1.0f);\n"
+        "   our_color = aColor;\n"
         "}\0";
     unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -64,11 +66,11 @@ int main(int argc, char **argv){
 
     const char *fragment_shader_source =
         "#version 330 core\n"
-        "in vec4 vertex_color;\n"
+        "in vec3 our_color;\n"
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vertex_color;\n"
+        "   FragColor = vec4(our_color, 1.0f);\n"
         "}\0";
     unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
@@ -94,9 +96,9 @@ int main(int argc, char **argv){
     glDeleteShader(fragment_shader);
 
     float vertices[] = {
-       -0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f
+       -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
     };
 
     unsigned int VBO, VAO;
@@ -107,13 +109,15 @@ int main(int argc, char **argv){
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     
-    // render loop
+    // Render Loop
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
@@ -123,6 +127,7 @@ int main(int argc, char **argv){
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
