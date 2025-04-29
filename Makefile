@@ -1,7 +1,7 @@
 CC = gcc
 
-CFLAGS = -Wall -std=c99 -g 
-LDFLAGS = -lglfw3dll -lopengl32 -lgdi32 
+CFLAGS = -Wall -std=c99 -g
+LDFLAGS = -lglfw3dll -lopengl32 -lgdi32 -mwindows
 
 INCLUDES = -Iinclude -Iinclude/glad
 LIBS = -Llib -Llib/GLFW
