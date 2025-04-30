@@ -56,7 +56,7 @@ u32 load_shader_program(const char *vertex_shader_source, const char *fragment_s
         ERR("FAILED TO LOAD SHADER VERTEX SOURCE");
         return 0;
     }
-    LOG("Vertex Src:\n%s\n", vertex_src);
+    //LOG("Vertex Src:\n%s\n", vertex_src);
     u32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, (const char * const*)&vertex_src, NULL);
     glCompileShader(vertex_shader);
@@ -73,7 +73,7 @@ u32 load_shader_program(const char *vertex_shader_source, const char *fragment_s
         ERR("FAILED TO LOAD SHADER FRAGMENT SOURCE");
         return 0;
     }
-    ERR("Fragment Src:\n%s\n", frag_src);
+    //LOG("Fragment Src:\n%s\n", frag_src);
     unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, (const char * const*)&frag_src, NULL);
     glCompileShader(fragment_shader);
@@ -81,7 +81,7 @@ u32 load_shader_program(const char *vertex_shader_source, const char *fragment_s
     if(!success){
         glGetShaderInfoLog(fragment_shader, info_log_buffer_size, NULL, info_log);
         ERR("SHADER FRAGMENT COMPILATION_FAILED: %s", info_log);
-        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
         return 0;
     }
     free(frag_src);

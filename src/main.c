@@ -13,7 +13,7 @@ int main(int argc, char **argv){
     int error_code = 0;
 
 #ifdef DEBUG
-    printf("Hello Debug Build\n\n");
+    printf("  Hello Debug Build\n\n");
     if(argc > 1){
         for(int i = 1; i < argc; i++){
             char *arg = argv[i];
@@ -59,9 +59,9 @@ int main(int argc, char **argv){
 
     u32 shader_program = load_shader_program("resrcs\\shaders\\default.vert", "resrcs\\shaders\\default.frag");
 
-    u32 texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    u32 tex_wood;
+    glGenTextures(1, &tex_wood);
+    glBindTexture(GL_TEXTURE_2D, tex_wood);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -69,13 +69,34 @@ int main(int argc, char **argv){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     int tex_width, tex_height, nr_channels;
+    stbi_set_flip_vertically_on_load(1);
     unsigned char *data = stbi_load("resrcs\\textures\\container.jpg", &tex_width, &tex_height, &nr_channels, 0);
     if(data){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else{
-        ERR("Failed To Load Texture");
+        ERR("Failed To Load Texture Wood");
+    }
+    stbi_image_free(data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    u32 tex_smile;
+    glGenTextures(1, &tex_smile);
+    glBindTexture(GL_TEXTURE_2D, tex_smile);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+
+    data = stbi_load("resrcs\\textures\\awesomeface.png", &tex_width, &tex_height, &nr_channels, 0);
+    if(data){
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else{
+        ERR("Failed To Load Texture Smile");
     }
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -115,6 +136,11 @@ int main(int argc, char **argv){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    glUseProgram(shader_program);
+    glUniform1i(glGetUniformLocation(shader_program, "texture_one"), 0);
+    glUniform1i(glGetUniformLocation(shader_program, "texture_two"), 1);
+    glUseProgram(0);
+
     // Render Loop
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -127,7 +153,11 @@ int main(int argc, char **argv){
 
         glUseProgram(shader_program);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tex_wood);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, tex_smile);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
