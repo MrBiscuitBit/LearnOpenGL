@@ -35,7 +35,7 @@ char *read_file(const char *path){
     return buffer;
 }
 
-uint32 load_shader_program(const char *vertex_shader_source, const char *fragment_shader_source){
+u32 load_shader_program(const char *vertex_shader_source, const char *fragment_shader_source){
 
     int error = 0;
     if(!vertex_shader_source){
@@ -52,7 +52,12 @@ uint32 load_shader_program(const char *vertex_shader_source, const char *fragmen
     char info_log[info_log_buffer_size];
     
     char *vertex_src = read_file(vertex_shader_source);
-    uint32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    if(!vertex_src){
+        ERR("FAILED TO LOAD SHADER VERTEX SOURCE");
+        return 0;
+    }
+    LOG("Vertex Src:\n%s\n", vertex_src);
+    u32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, (const char * const*)&vertex_src, NULL);
     glCompileShader(vertex_shader);
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
@@ -64,6 +69,11 @@ uint32 load_shader_program(const char *vertex_shader_source, const char *fragmen
     free(vertex_src);
 
     char *frag_src = read_file(fragment_shader_source);
+    if(!frag_src){
+        ERR("FAILED TO LOAD SHADER FRAGMENT SOURCE");
+        return 0;
+    }
+    ERR("Fragment Src:\n%s\n", frag_src);
     unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, (const char * const*)&frag_src, NULL);
     glCompileShader(fragment_shader);
@@ -76,7 +86,7 @@ uint32 load_shader_program(const char *vertex_shader_source, const char *fragmen
     }
     free(frag_src);
 
-    uint32 shader_program = glCreateProgram();
+    u32 shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex_shader);
     glAttachShader(shader_program, fragment_shader);
     glLinkProgram(shader_program);
