@@ -3,13 +3,32 @@
 void window_size_callback(GLFWwindow *window, int width, int height);
 void process_input();
 
+int log_enabled = 0;
+
 int main(int argc, char **argv){
 
-    printf("Hello OpenGL\n");
+    int error_code = 0;
+
+#ifdef DEBUG
+    printf("Hello Debug Build\n\n");
+    if(argc > 1){
+        for(int i = 1; i < argc; i++){
+            char *arg = argv[i];
+            if(strcmp(arg, "--log") == 0){
+                log_enabled = 1;
+                LOG("Log Enabled!");
+            }
+            else{
+                printf("Usage: .\\%s --log\n", argv[0]);
+                return ++error_code;
+            }
+        }
+    }
+#endif
 
     if(glfwInit() == GLFW_FALSE){
         printf("ERROR::GLFW Init Failed. Extiting Program..\n");
-        return 1;
+        return ++error_code;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -21,7 +40,7 @@ int main(int argc, char **argv){
     if(!window){
         printf("ERROR::GLFW Create Window Failed. Extiting Program..\n");
         glfwTerminate();
-        return 2;
+        return ++error_code;
     }
     glfwMakeContextCurrent(window);
 
@@ -29,7 +48,7 @@ int main(int argc, char **argv){
         printf("ERROR::Failed To Initialize GLAD. Exiting Program..\n");
         glfwDestroyWindow(window);
         glfwTerminate();
-        return 3;
+        return ++error_code;
     }
 
     glViewport(0, 0, wnd_width, wnd_height);

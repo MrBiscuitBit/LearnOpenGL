@@ -1,21 +1,38 @@
 #include "shader.h"
 
-char* read_file(const char* path) {
-    FILE* file = fopen(path, "r");
-    if (!file) return NULL;
+char *read_file(const char *path){
+    LOG("Reading File To Buffer: (%s)...", path);
+
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        ERR("Failed To Open File");
+        return NULL;
+    }
 
     fseek(file, 0, SEEK_END);
-    int size = ftell(file);
+    long length = ftell(file);
     rewind(file);
 
-    char* buf = malloc(size + 1);
-    if (!buf) { fclose(file); return NULL; }
+    if (length == 0) {
+        WRN("File Is Empty");
+    }
 
-    size_t read = fread(buf, 1, size, file);
-    buf[read] = '\0';
+    char *buffer = (char *)malloc(length + 1);
+    if(!buffer){
+        ERR("Failed To Allocate Buffer For File\n");
+        fclose(file);
+        return NULL;
+    }
 
+    size_t read_size = fread(buffer, 1, length, file);
+    if(read_size != length){
+        WRN("File Read Mismatch: (Expected %ld, Result %zu)", length, read_size);
+    }
+
+    buffer[read_size] = '\0';
     fclose(file);
-    return buf;
+    LOG("File Read Successfully");
+    return buffer;
 }
 
 uint32 load_shader_program(const char *vertex_shader_source, const char *fragment_shader_source){
@@ -41,20 +58,21 @@ uint32 load_shader_program(const char *vertex_shader_source, const char *fragmen
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if(!success){
         glGetShaderInfoLog(vertex_shader, info_log_buffer_size, NULL, info_log);
-        printf("ERROR::SHADER VERTEX COMPILATION_FAILED: %s\n", info_log);
-        memset(info_log, '\0', sizeof(info_log));
+        ERR("SHADER VERTEX COMPILATION_FAILED: %s", info_log);
+        return 0;
     }
     free(vertex_src);
 
     char *frag_src = read_file(fragment_shader_source);
     unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, (const char * const*)&vertex_src, NULL);
+    glShaderSource(fragment_shader, 1, (const char * const*)&frag_src, NULL);
     glCompileShader(fragment_shader);
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
     if(!success){
         glGetShaderInfoLog(fragment_shader, info_log_buffer_size, NULL, info_log);
-        printf("ERROR::SHADER FRAGMENT COMPILATION_FAILED: %s\n", info_log);
-        memset(info_log, '\0', sizeof(info_log));
+        ERR("SHADER FRAGMENT COMPILATION_FAILED: %s", info_log);
+        glDeleteShader(vertex_shader);
+        return 0;
     }
     free(frag_src);
 
@@ -65,8 +83,11 @@ uint32 load_shader_program(const char *vertex_shader_source, const char *fragmen
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
     if(!success){
         glGetProgramInfoLog(shader_program, info_log_buffer_size, NULL, info_log);
-        printf("ERROR::SHADER PROGRAM LINKING_FAILED: %s\n", info_log);
-        memset(info_log, '\0', sizeof(info_log));
+        ERR("SHADER PROGRAM LINKING_FAILED: %s", info_log);
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
+        glDeleteProgram(shader_program);
+        return 0;
     }
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
