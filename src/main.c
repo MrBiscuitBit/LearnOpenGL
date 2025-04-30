@@ -4,7 +4,7 @@
 #include "stb_image.h"
 
 void window_size_callback(GLFWwindow *window, int width, int height);
-void process_input();
+void process_input(GLFWwindow *window, float *mix_factor);
 
 int log_enabled = 0;
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     data = stbi_load("resrcs\\textures\\awesomeface.png", &tex_width, &tex_height, &nr_channels, 0);
     if(data){
@@ -139,19 +139,25 @@ int main(int argc, char **argv){
     glUseProgram(shader_program);
     glUniform1i(glGetUniformLocation(shader_program, "texture_one"), 0);
     glUniform1i(glGetUniformLocation(shader_program, "texture_two"), 1);
+    int mix_factor_location = glGetUniformLocation(shader_program, "mix_factor");
     glUseProgram(0);
+
+
 
     // Render Loop
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    float mix_factor = 0.2f;
 
     int running = 1;
     while(!glfwWindowShouldClose(window) && running != 0){
-        process_input(window);
+        process_input(window, &mix_factor);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
+
+        glUniform1f(mix_factor_location, mix_factor);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tex_wood);
@@ -181,10 +187,18 @@ void window_size_callback(GLFWwindow *window, int width, int height){
     glViewport(0, 0, width, height);
 }
 
-void process_input(GLFWwindow *window){
+void process_input(GLFWwindow *window, float *mix_factor){
 
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+        *mix_factor += 0.0005f;
+        if(*mix_factor >= 1.0f) *mix_factor = 1.0f;
+    }
+    else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+        *mix_factor -= 0.0005f;
+        if(*mix_factor <= 0.0f) *mix_factor = 0.0f;
     }
 
 }
