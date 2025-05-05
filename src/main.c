@@ -1,7 +1,9 @@
-#include <shader.h>
+#include "shader.h"
+
+#include "cglm/cglm.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 
 void window_size_callback(GLFWwindow *window, int width, int height);
 void process_input(GLFWwindow *window, float *mix_factor);
@@ -139,10 +141,9 @@ int main(int argc, char **argv){
     glUseProgram(shader_program);
     glUniform1i(glGetUniformLocation(shader_program, "texture_one"), 0);
     glUniform1i(glGetUniformLocation(shader_program, "texture_two"), 1);
-    int mix_factor_location = glGetUniformLocation(shader_program, "mix_factor");
+    u32 mix_factor_location = glGetUniformLocation(shader_program, "mix_factor");
+    u32 trans_loc = glGetUniformLocation(shader_program, "transform");
     glUseProgram(0);
-
-
 
     // Render Loop
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -157,7 +158,12 @@ int main(int argc, char **argv){
 
         glUseProgram(shader_program);
 
+        mat4 trans;
+        glm_translate_make(trans, (vec3){0.5f, -0.5f, 0.0f});
+        glm_rotate(trans, (float)glfwGetTime(), (vec3){0.0f, 0.0f, 1.0f});
+
         glUniform1f(mix_factor_location, mix_factor);
+        glUniformMatrix4fv(trans_loc, 1, GL_FALSE, trans[0]);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tex_wood);

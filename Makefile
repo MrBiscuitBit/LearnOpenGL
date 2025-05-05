@@ -4,7 +4,7 @@ OUT_DIR = bin
 BUILD_DIR = build
 TARGET = learnopengl
 
-INCLUDES = -Iinclude -Iinclude/glad
+INCLUDES = -Iinclude -Iinclude/glad -Iinclude/cglm
 CFLAGS = -std=c99
 LIBS = -Llib -Llib/GLFW
 LDFLAGS = -lglfw3dll -lopengl32 -lgdi32
